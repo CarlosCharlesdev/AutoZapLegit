@@ -42,7 +42,7 @@
             <span class="numero-prefix">+55</span>
             <input type="tel" id="numero-destino" name="numeroDestino" placeholder="Ex: 69992700080" required pattern="[0-9]{10,11}" maxlength="11">
           </div>
-          <button type="button" onclick="salvarNumero()">💾 Salvar número</button>
+          <button type="button" onclick="salvarNumero()" disabled>💾 Salvar número</button>
         </label>
       </div>
        
@@ -88,7 +88,7 @@
     
       <div class="botoes-container">
         <button type="button" onclick="verResultado()" class="btn-resultado">📊 Ver Resultado</button>
-        <button type="submit" class="btn-enviar">📤 Enviar pedido</button>
+        <button type="submit" class="btn-enviar" disabled>📤 Enviar pedido</button>
       </div>
     </form>
 
