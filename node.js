@@ -16,6 +16,7 @@ const __dirname = path.dirname(__filename);
 
 const consumoPath = path.join(__dirname, 'consumo.json');
 const numeroPath = path.join(__dirname, 'numero-destino.json');
+const numeroPaesPath = path.join(__dirname, 'numero-paes.json');
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -23,6 +24,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Inicializa o arquivo numero-destino.json se não existir
 if (!fs.existsSync(numeroPath)) {
   fs.writeFileSync(numeroPath, JSON.stringify({ numero: '' }, null, 2));
+}
+
+// Inicializa o arquivo numero-paes.json se não existir
+if (!fs.existsSync(numeroPaesPath)) {
+  fs.writeFileSync(numeroPaesPath, JSON.stringify({ numero: '' }, null, 2));
 }
 
 // Endpoint para obter o consumo semanal
@@ -41,6 +47,16 @@ app.get('/numero-destino', (req, res) => {
   }
 });
 
+// Endpoint para obter o número de pães salvo
+app.get('/numero-paes', (req, res) => {
+  try {
+    const data = JSON.parse(fs.readFileSync(numeroPaesPath, 'utf-8'));
+    res.json(data);
+  } catch (err) {
+    res.json({ numero: '' });
+  }
+});
+
 // Endpoint para salvar o número de destino
 app.post('/salvar-numero', (req, res) => {
   const { numero } = req.body;
@@ -51,6 +67,18 @@ app.post('/salvar-numero', (req, res) => {
 
   fs.writeFileSync(numeroPath, JSON.stringify({ numero }, null, 2));
   res.json({ mensagem: 'Número salvo com sucesso!', numero });
+});
+
+// Endpoint para salvar o número de pães
+app.post('/salvar-numero-paes', (req, res) => {
+  const { numero } = req.body;
+  
+  if (!numero) {
+    return res.status(400).json({ mensagem: 'Número não fornecido.' });
+  }
+
+  fs.writeFileSync(numeroPaesPath, JSON.stringify({ numero }, null, 2));
+  res.json({ mensagem: 'Número de pães salvo com sucesso!', numero });
 });
 
 function obterDiaAtual() {
@@ -135,6 +163,64 @@ app.post('/enviar', (req, res) => {
   }).catch(err => {
     console.error(err.response?.data || err.message);
     res.status(500).json({ mensagem: '❌ Erro ao enviar o pedido.' });
+  });
+});
+
+// Endpoint para enviar pedido de pães
+app.post('/enviar-paes', (req, res) => {
+  const { brioche, baguete, numeroPaes } = req.body;
+
+  // Usa o número fornecido ou o salvo no JSON
+  let numeroFinal = numeroPaes || '';
+  
+  if (!numeroFinal) {
+    try {
+      const data = JSON.parse(fs.readFileSync(numeroPaesPath, 'utf-8'));
+      numeroFinal = data.numero || '';
+    } catch (err) {
+      console.error('Erro ao ler número de pães salvo:', err);
+    }
+  }
+
+  if (!numeroFinal) {
+    return res.status(400).json({ 
+      mensagem: '❌ Nenhum número de pães configurado.',
+      detalhes: 'Por favor, configure o número de destino para pães.'
+    });
+  }
+
+  // Salva o número usado se foi fornecido
+  if (numeroPaes) {
+    fs.writeFileSync(numeroPaesPath, JSON.stringify({ numero: numeroPaes }, null, 2));
+  }
+
+  let corpoMensagem = 'Bom dia! Segue nosso pedido de pães:';
+  
+  if (brioche > 0) {
+    corpoMensagem += `\n  - ${brioche} unidades de Pão Brioche`;
+  }
+  
+  if (baguete > 0) {
+    corpoMensagem += `\n  - ${baguete} unidades de Pão Baguete`;
+  }
+
+  axios.post('https://gate.whapi.cloud/messages/text', {
+    to: numeroFinal,
+    body: corpoMensagem
+  }, {
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    }
+  }).then(() => {
+    res.json({
+      mensagem: `✅ Pedido de pães enviado com sucesso!`,
+      detalhes: corpoMensagem
+    });
+  }).catch(err => {
+    console.error(err.response?.data || err.message);
+    res.status(500).json({ mensagem: '❌ Erro ao enviar o pedido de pães.' });
   });
 });
 
