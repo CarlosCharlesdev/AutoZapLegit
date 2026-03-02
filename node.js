@@ -18,7 +18,8 @@ const consumoPath = path.join(__dirname, 'consumo.json');
 const numeroPath = path.join(__dirname, 'numero-destino.json');
 
 // Número fixo para pedidos de pães (altere aqui para o número desejado)
-const NUMERO_PAES = '556992254900'; // Formato: 55 + DDD + número
+const NUMERO_PAES = '556992077361'; // Formato: 55 + DDD + número
+
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
