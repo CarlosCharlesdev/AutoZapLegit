@@ -3,7 +3,7 @@ function atualizarDiaHoje() {
   const hoje = new Date();
 
   // Se for antes das 03:00, consideramos o dia anterior
-  if (hoje.getHours() < 3) {
+  if (hoje.getHours() < 12) {
     hoje.setDate(hoje.getDate() - 1);
   }
 
