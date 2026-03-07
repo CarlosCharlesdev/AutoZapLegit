@@ -204,7 +204,7 @@
 
     const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
     const hoje = new Date();
-    if (hoje.getHours() < 3) hoje.setDate(hoje.getDate() - 1);
+    if (hoje.getHours() < 14) hoje.setDate(hoje.getDate() - 1);
     
     const amanha = (hoje.getDay() + 1) % 7;
     const diaAmanha = diasSemana[amanha];
@@ -391,15 +391,15 @@
 
   atualizarDiaHoje();
 
-  function agendarAtualizacao12h() {
+  function agendarAtualizacao14h() {
     const agora = new Date();
-    const proximo12h = new Date();
-    proximo12h.setHours(14, 0, 0, 0);
-    if (agora >= proximo12h) proximo12h.setDate(proximo12h.getDate() + 1);
-    setTimeout(() => { atualizarDiaHoje(); agendarAtualizacao12h(); }, proximo12h - agora);
+    const proximo14h = new Date();
+    proximo14h.setHours(14, 0, 0, 0);
+    if (agora >= proximo14h) proximo14h.setDate(proximo14h.getDate() + 1);
+    setTimeout(() => { atualizarDiaHoje(); agendarAtualizacao14h(); }, proximo14h - agora);
   }
 
-  agendarAtualizacao12h();
+  agendarAtualizacao14h();
 
   // ========== FUNÇÃO PARA ALTERAR CONSUMO DE UM DIA ==========
   function atualizarDia(dia) {
