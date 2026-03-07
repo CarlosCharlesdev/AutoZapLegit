@@ -39,7 +39,7 @@ app.get('/consumo', (req, res) => {
 
 function obterDiaAtual() {
   const agora = new Date();
-  if (agora.getHours() < 3) {
+  if (agora.getHours() < 14) {
     agora.setDate(agora.getDate() - 1);
   }
   return agora.getDay();
