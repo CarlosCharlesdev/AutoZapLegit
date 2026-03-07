@@ -19,13 +19,13 @@ const consumoPath = path.join(__dirname, 'consumo.json');
 // Números fixos para pedidos de pães (altere aqui para os números desejados)
 const NUMEROS_PAES = [
   '556992254900',
-  '556992077361'
+  '556992700080'
 ];
 
 // Números fixos para pedidos de carne (altere aqui para os números desejados)
 const NUMEROS_CARNE = [
   '556992254900',
-  '556992077361'
+  '556992700080'
 ];
 
 app.use(bodyParser.json());
