@@ -33,18 +33,6 @@
   <form id="carne-form">
     <h2>Consumo por dia (Blend)</h2>
     <p id="dia_hoje">dia</p>
-
-    <!-- CAMPO NÚMERO DE DESTINO -->
-    <!-- <div class="numero-destino-container">
-      <label for="numero-destino">
-        📱 Número de destino (WhatsApp):
-        <div class="numero-input-wrapper">
-          <span class="numero-prefix">+55</span>
-          <input type="tel" id="numero-destino" name="numeroDestino" placeholder="Ex: 69992700080" required pattern="[0-9]{10,11}" maxlength="11">
-        </div>
-        <button type="button" onclick="salvarNumero()"disabled>💾 Salvar número</button>
-      </label>
-    </div> -->
      
     <h2>Quanto sobrou hoje?</h2>
     <input type="number" name="restante" required placeholder="Ex: 100">
@@ -194,7 +182,6 @@
 </footer>
 
 <script>
-  // Variáveis globais para armazenar os dados do formulário
   let dadosFormularioTemporario = null;
 
   // ========== FUNÇÃO PARA VER RESULTADO NO MODAL ==========
@@ -203,47 +190,33 @@
     const formData = new FormData(form);
     const dados = Object.fromEntries(formData.entries());
 
-    // Valida se o campo "restante" foi preenchido
     if (!dados.restante || Number(dados.restante) < 0) {
       alert('⚠️ Por favor, preencha o campo "Quanto sobrou hoje?"');
       return;
     }
 
-    // Converte para números
     const restante = Number(dados.restante);
     
     const consumo = {};
     ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'].forEach(dia => {
-      if (dados[dia]) {
-        consumo[dia] = Number(dados[dia]);
-      }
+      if (dados[dia]) consumo[dia] = Number(dados[dia]);
     });
 
-    // Calcula qual é amanhã (considerando a regra das 3h)
     const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
     const hoje = new Date();
+    if (hoje.getHours() < 3) hoje.setDate(hoje.getDate() - 1);
     
-    // Se for antes das 03:00, consideramos o dia anterior
-    if (hoje.getHours() < 3) {
-      hoje.setDate(hoje.getDate() - 1);
-    }
-    
-    let indiceDia = hoje.getDay();
-    const amanha = (indiceDia + 1) % 7;
+    const amanha = (hoje.getDay() + 1) % 7;
     const diaAmanha = diasSemana[amanha];
     const nomeDiaExtenso = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-    
     const consumoAmanha = consumo[diaAmanha] || 0;
     
-    // Realiza o cálculo
     const falta = Math.max(consumoAmanha - restante, 0);
     const quantidadePedir = falta === 0 ? 0 : Math.ceil(falta / 50) * 50;
-    
     const fraldinha = (quantidadePedir * 0.08).toFixed(0);
     const acem = (quantidadePedir * 0.08).toFixed(0);
     const gordura = (quantidadePedir * 0.02).toFixed(0);
 
-    // Monta o conteúdo do modal
     const modalBody = document.getElementById('modal-body');
     
     if (quantidadePedir === 0) {
@@ -262,55 +235,31 @@
               <span class="detalhe-valor">${consumoAmanha} kg</span>
             </div>
           </div>
-        </div>
-      `;
+        </div>`;
     } else {
       modalBody.innerHTML = `
         <div class="resultado-pedido">
           <div class="resultado-icone">📦</div>
           <h4>Pedido Necessário</h4>
           <p>Para atender a demanda de <strong>${nomeDiaExtenso[amanha]}</strong>:</p>
-          
           <div class="resultado-total">
             <span>Total de Blend:</span>
             <strong>${quantidadePedir} unid</strong>
           </div>
-          
           <div class="resultado-composicao">
             <h5>Composição do Blend:</h5>
-            <div class="composicao-item">
-              <span>🥩 Fraldinha:</span>
-              <strong>${fraldinha} kg</strong>
-            </div>
-            <div class="composicao-item">
-              <span>🥩 Acém:</span>
-              <strong>${acem} kg</strong>
-            </div>
-            <div class="composicao-item">
-              <span>🧈 Gordura de peito:</span>
-              <strong>${gordura} kg</strong>
-            </div>
+            <div class="composicao-item"><span>🥩 Fraldinha:</span><strong>${fraldinha} kg</strong></div>
+            <div class="composicao-item"><span>🥩 Acém:</span><strong>${acem} kg</strong></div>
+            <div class="composicao-item"><span>🧈 Gordura de peito:</span><strong>${gordura} kg</strong></div>
           </div>
-          
           <div class="resultado-detalhes">
-            <div class="detalhe-item">
-              <span class="detalhe-label">Sobrou hoje:</span>
-              <span class="detalhe-valor">${restante} unid</span>
-            </div>
-            <div class="detalhe-item">
-              <span class="detalhe-label">Necessário para amanhã:</span>
-              <span class="detalhe-valor">${consumoAmanha} unid</span>
-            </div>
-            <div class="detalhe-item">
-              <span class="detalhe-label">Falta:</span>
-              <span class="detalhe-valor">${falta} unid</span>
-            </div>
+            <div class="detalhe-item"><span class="detalhe-label">Sobrou hoje:</span><span class="detalhe-valor">${restante} unid</span></div>
+            <div class="detalhe-item"><span class="detalhe-label">Necessário para amanhã:</span><span class="detalhe-valor">${consumoAmanha} unid</span></div>
+            <div class="detalhe-item"><span class="detalhe-label">Falta:</span><span class="detalhe-valor">${falta} unid</span></div>
           </div>
-        </div>
-      `;
+        </div>`;
     }
     
-    // Exibe o modal
     document.getElementById('modal-resultado').classList.add('show');
   }
 
@@ -318,17 +267,13 @@
     document.getElementById('modal-resultado').classList.remove('show');
   }
 
-  // Fechar modal ao clicar fora dele
   document.getElementById('modal-resultado').addEventListener('click', function(e) {
-    if (e.target === this) {
-      fecharModal();
-    }
+    if (e.target === this) fecharModal();
   });
 
   // ========== FUNÇÕES DOS MODAIS DE PÃES ==========
   function fecharModalPaesConfirmacao() {
-    document.getElementById('modal-paes-confirmacao').classList.remove('show');
-    dadosFormularioTemporario = null;
+    document.getElementById("modal-paes-confirmacao").classList.remove("show");
   }
 
   function fecharModalPaesQuantidade() {
@@ -338,7 +283,6 @@
   function abrirModalPaes() {
     document.getElementById('modal-paes-confirmacao').classList.remove('show');
     document.getElementById('modal-paes-quantidade').classList.add('show');
-    // Limpa os campos
     document.getElementById('brioche').value = 0;
     document.getElementById('baguete').value = 0;
   }
@@ -348,27 +292,35 @@
     document.getElementById('modal-paes-confirmacao').classList.add('show');
   }
 
+  // Clicou "Não" — envia carne + avisa que não precisa de pão
   async function enviarPedidoSemPaes() {
     fecharModalPaesConfirmacao();
     await finalizarEnvioPedidoCarne();
+
+    try {
+      const resPaes = await fetch('/enviar-paes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brioche: 0, baguete: 0 })
+      });
+      const dataPaes = await resPaes.json();
+      const msg = document.getElementById('mensagem');
+      msg.innerHTML += `<br><br>${dataPaes.detalhes}`;
+    } catch (err) {
+      console.error(err);
+    }
   }
 
+  // Clicou "Sim" e confirmou quantidades
   async function enviarPedidoPaes() {
     const brioche = Number(document.getElementById('brioche').value) || 0;
     const baguete = Number(document.getElementById('baguete').value) || 0;
 
-    if (brioche === 0 && baguete === 0) {
-      alert('⚠️ Por favor, informe a quantidade de pelo menos um tipo de pão.');
-      return;
-    }
-
     fecharModalPaesQuantidade();
 
     try {
-      // Primeiro envia o pedido de carne
       await finalizarEnvioPedidoCarne();
 
-      // Depois envia o pedido de pães
       const resPaes = await fetch('/enviar-paes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -376,14 +328,8 @@
       });
 
       const dataPaes = await resPaes.json();
-      
       const msg = document.getElementById('mensagem');
-      const mensagemAtual = msg.innerHTML;
-      msg.innerHTML = `
-        ${mensagemAtual}<br><br>
-        ${dataPaes.mensagem}<br>
-        <strong>Detalhes:</strong> ${dataPaes.detalhes || ''}
-      `;
+      msg.innerHTML += `<br><br>${dataPaes.mensagem}<br><strong>Detalhes:</strong> ${dataPaes.detalhes || ''}`;
     } catch (err) {
       console.error(err);
       alert('❌ Erro ao enviar o pedido de pães.');
@@ -402,12 +348,9 @@
 
       const data = await res.json();
       const msg = document.getElementById('mensagem');
-      msg.innerHTML = `
-        ${data.mensagem}<br>
-        <strong>Detalhes:</strong> ${data.detalhes || ''}
-      `;
-
+      msg.innerHTML = `${data.mensagem}<br><strong>Detalhes:</strong> ${data.detalhes || ''}`;
       msg.className = 'mensagem success';
+      dadosFormularioTemporario = null;
     } catch (err) {
       const msg = document.getElementById('mensagem');
       msg.textContent = 'Erro ao enviar mensagem.';
@@ -415,70 +358,16 @@
     }
   }
 
-  // ========== CARREGA O NÚMERO SALVO ==========
-  fetch('/numero-destino')
-    .then(res => res.json())
-    .then(data => {
-      if (data.numero) {
-        // Remove o 55 do início se existir para exibir apenas o DDD+número
-        const numeroExibir = data.numero.startsWith('55') ? data.numero.substring(2) : data.numero;
-        const numeroInput = document.getElementById('numero-destino');
-        if (numeroInput) numeroInput.value = numeroExibir;
-      }
-    })
-    .catch(err => console.error('Erro ao carregar número:', err));
-
-  // ========== FUNÇÃO PARA SALVAR O NÚMERO ==========
-  function salvarNumero() {
-    const numeroInput = document.getElementById('numero-destino');
-    const numero = numeroInput.value.trim();
-
-    if (!numero || numero.length < 10) {
-      alert('⚠️ Por favor, insira um número válido com DDD (mínimo 10 dígitos).');
-      return;
-    }
-
-    // Adiciona o prefixo 55 antes de salvar
-    const numeroCompleto = '55' + numero;
-
-    fetch('/salvar-numero', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ numero: numeroCompleto })
-    })
-      .then(res => res.json())
-      .then(data => {
-        alert('✅ Número salvo com sucesso!');
-      })
-      .catch(err => {
-        console.error(err);
-        alert('❌ Erro ao salvar número.');
-      });
-  }
-
-  // ========== SUBMIT DO FORMULÁRIO (ENVIAR PEDIDO) ==========
+  // ========== SUBMIT DO FORMULÁRIO ==========
   document.getElementById('carne-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const form = new FormData(e.target);
     const dados = Object.fromEntries(form.entries());
 
-    // Converte valores para número (exceto numeroDestino)
-    Object.keys(dados).forEach(k => {
-      if (k !== 'numeroDestino') {
-        dados[k] = Number(dados[k]);
-      }
-    });
+    Object.keys(dados).forEach(k => { dados[k] = Number(dados[k]); });
 
-    // Adiciona o prefixo 55 ao número se fornecido
-    if (dados.numeroDestino) {
-      dados.numeroDestino = '55' + dados.numeroDestino.trim();
-    }
-
-    // Armazena os dados temporariamente
     dadosFormularioTemporario = dados;
-
-    // Abre o modal de confirmação de pães
     document.getElementById('modal-paes-confirmacao').classList.add('show');
   });
 
@@ -494,38 +383,20 @@
 
   // ========== ATUALIZA DIA HOJE ==========
   function atualizarDiaHoje() {
-    const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
     const hoje = new Date();
-
-    // Se for antes das 03:00, consideramos o dia anterior
-    if (hoje.getHours() < 3) {
-      hoje.setDate(hoje.getDate() - 1);
-    }
-
-    const indiceDia = hoje.getDay();
+    if (hoje.getHours() < 3) hoje.setDate(hoje.getDate() - 1);
     const nomeDiaExtenso = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
-    const pDiaHoje = document.getElementById('dia_hoje');
-    pDiaHoje.textContent = `Hoje é ${nomeDiaExtenso[indiceDia]}.`;
+    document.getElementById('dia_hoje').textContent = `Hoje é ${nomeDiaExtenso[hoje.getDay()]}.`;
   }
 
   atualizarDiaHoje();
 
-  // Atualiza o dia novamente às 3h da manhã do próximo dia
   function agendarAtualizacao3h() {
     const agora = new Date();
     const proximo3h = new Date();
-
     proximo3h.setHours(3, 0, 0, 0);
-    if (agora >= proximo3h) {
-      proximo3h.setDate(proximo3h.getDate() + 1);
-    }
-
-    const msAte3h = proximo3h.getTime() - agora.getTime();
-
-    setTimeout(() => {
-      atualizarDiaHoje();
-      agendarAtualizacao3h();
-    }, msAte3h);
+    if (agora >= proximo3h) proximo3h.setDate(proximo3h.getDate() + 1);
+    setTimeout(() => { atualizarDiaHoje(); agendarAtualizacao3h(); }, proximo3h - agora);
   }
 
   agendarAtualizacao3h();
@@ -546,26 +417,16 @@
       body: JSON.stringify({ [dia]: valor })
     })
       .then(res => res.json())
-      .then(data => {
-        alert(`✅ Consumo de ${dia} atualizado para ${valor} kg.`);
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Erro ao atualizar consumo.');
-      });
+      .then(() => alert(`✅ Consumo de ${dia} atualizado para ${valor} kg.`))
+      .catch(() => alert('Erro ao atualizar consumo.'));
   }
 
-  // Fechar modais ao clicar fora
   document.getElementById('modal-paes-confirmacao').addEventListener('click', function(e) {
-    if (e.target === this) {
-      fecharModalPaesConfirmacao();
-    }
+    if (e.target === this) fecharModalPaesConfirmacao();
   });
 
   document.getElementById('modal-paes-quantidade').addEventListener('click', function(e) {
-    if (e.target === this) {
-      fecharModalPaesQuantidade();
-    }
+    if (e.target === this) fecharModalPaesQuantidade();
   });
 </script>
     

@@ -37,7 +37,6 @@ app.get('/consumo', (req, res) => {
   res.json(consumo);
 });
 
-
 function obterDiaAtual() {
   const agora = new Date();
   if (agora.getHours() < 3) {
@@ -50,7 +49,6 @@ function obterDiaAtual() {
 app.post('/enviar', (req, res) => {
   const { restante, ...novoConsumo } = req.body;
 
-  // Salva o consumo atualizado
   fs.writeFileSync(consumoPath, JSON.stringify(novoConsumo, null, 2));
 
   const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
@@ -109,25 +107,18 @@ app.post('/enviar', (req, res) => {
 app.post('/enviar-paes', (req, res) => {
   const { brioche, baguete } = req.body;
 
+  let corpoMensagem;
+
   if ((!brioche || brioche <= 0) && (!baguete || baguete <= 0)) {
-    return res.status(400).json({ 
-      mensagem: '❌ Quantidade inválida.',
-      detalhes: 'Por favor, informe a quantidade de pelo menos um tipo de pão.'
-    });
+    corpoMensagem = 'Hoje não precisamos de pães.';
+  } else {
+    corpoMensagem = 'Bom dia! Segue nosso pedido de pães:';
+    if (brioche > 0) corpoMensagem += `\n  - ${brioche} unidades de Pão Brioche`;
+    if (baguete > 0) corpoMensagem += `\n  - ${baguete} unidades de Pão Baguete`;
   }
 
-  let corpoMensagem = 'Bom dia! Segue nosso pedido de pães:';
-  
-  if (brioche > 0) {
-    corpoMensagem += `\n  - ${brioche} unidades de Pão Brioche`;
-  }
-  
-  if (baguete > 0) {
-    corpoMensagem += `\n  - ${baguete} unidades de Pão Baguete`;
-  }
-
-  const requests = NUMEROS_PAES.map(numero => {
-    return axios.post('https://gate.whapi.cloud/messages/text', {
+  const requests = NUMEROS_PAES.map(numero =>
+    axios.post('https://gate.whapi.cloud/messages/text', {
       to: numero,
       body: corpoMensagem
     }, {
@@ -136,8 +127,8 @@ app.post('/enviar-paes', (req, res) => {
         'Content-Type': 'application/json',
         Accept: 'application/json'
       }
-    });
-  });
+    })
+  );
 
   Promise.all(requests)
     .then(() => {
