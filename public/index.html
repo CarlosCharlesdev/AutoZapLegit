@@ -381,25 +381,25 @@
       }
     });
 
-  // ========== ATUALIZA DIA HOJE ==========
+// ========== ATUALIZA DIA HOJE ==========
   function atualizarDiaHoje() {
     const hoje = new Date();
-    if (hoje.getHours() < 3) hoje.setDate(hoje.getDate() - 1);
+    if (hoje.getHours() < 14) hoje.setDate(hoje.getDate() - 1);
     const nomeDiaExtenso = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
     document.getElementById('dia_hoje').textContent = `Hoje é ${nomeDiaExtenso[hoje.getDay()]}.`;
   }
 
   atualizarDiaHoje();
 
-  function agendarAtualizacao3h() {
+  function agendarAtualizacao12h() {
     const agora = new Date();
-    const proximo3h = new Date();
-    proximo3h.setHours(3, 0, 0, 0);
-    if (agora >= proximo3h) proximo3h.setDate(proximo3h.getDate() + 1);
-    setTimeout(() => { atualizarDiaHoje(); agendarAtualizacao3h(); }, proximo3h - agora);
+    const proximo12h = new Date();
+    proximo12h.setHours(14, 0, 0, 0);
+    if (agora >= proximo12h) proximo12h.setDate(proximo12h.getDate() + 1);
+    setTimeout(() => { atualizarDiaHoje(); agendarAtualizacao12h(); }, proximo12h - agora);
   }
 
-  agendarAtualizacao3h();
+  agendarAtualizacao12h();
 
   // ========== FUNÇÃO PARA ALTERAR CONSUMO DE UM DIA ==========
   function atualizarDia(dia) {

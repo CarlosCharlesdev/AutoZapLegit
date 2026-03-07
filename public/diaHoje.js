@@ -2,7 +2,7 @@ function atualizarDiaHoje() {
   const diasSemana = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
   const hoje = new Date();
 
-  // Se for antes das 03:00, consideramos o dia anterior
+  // Se for antes das 12:00, consideramos o dia anterior
   if (hoje.getHours() < 12) {
     hoje.setDate(hoje.getDate() - 1);
   }
@@ -14,26 +14,23 @@ function atualizarDiaHoje() {
   pDiaHoje.textContent = `Hoje é ${nomeDia}.`;
 }
 
+atualizarDiaHoje();
 
-  // Atualiza o dia agora
-  atualizarDiaHoje();
+function agendarAtualizacao12h() {
+  const agora = new Date();
+  const proximo12h = new Date();
 
-  // Atualiza o dia novamente às 3h da manhã do próximo dia
-  function agendarAtualizacao3h() {
-    const agora = new Date();
-    const proximo3h = new Date();
-
-    proximo3h.setHours(3, 0, 0, 0);
-    if (agora >= proximo3h) {
-      proximo3h.setDate(proximo3h.getDate() + 1);
-    }
-
-    const msAte3h = proximo3h.getTime() - agora.getTime();
-
-    setTimeout(() => {
-      atualizarDiaHoje();
-      agendarAtualizacao3h();
-    }, msAte3h);
+  proximo12h.setHours(12, 0, 0, 0);
+  if (agora >= proximo12h) {
+    proximo12h.setDate(proximo12h.getDate() + 1);
   }
 
-  agendarAtualizacao3h();
+  const msAte12h = proximo12h.getTime() - agora.getTime();
+
+  setTimeout(() => {
+    atualizarDiaHoje();
+    agendarAtualizacao12h();
+  }, msAte12h);
+}
+
+agendarAtualizacao12h();
