@@ -15,18 +15,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const consumoPath = path.join(__dirname, 'consumo.json');
-const numeroPath = path.join(__dirname, 'numero-destino.json');
 
-// Número fixo para pedidos de pães (altere aqui para o número desejado)
-const NUMERO_PAES = '556999560610'; // Formato: 55 + DDD + número
+// Números fixos para pedidos de pães (altere aqui para os números desejados)
+const NUMEROS_PAES = [
+  '556992254900',
+  '556992077361'
+];
+
+// Números fixos para pedidos de carne (altere aqui para os números desejados)
+const NUMEROS_CARNE = [
+  '556992254900',
+  '556992077361'
+];
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Inicializa o arquivo numero-destino.json se não existir
-if (!fs.existsSync(numeroPath)) {
-  fs.writeFileSync(numeroPath, JSON.stringify({ numero: '' }, null, 2));
-}
 
 // Endpoint para obter o consumo semanal
 app.get('/consumo', (req, res) => {
@@ -34,27 +37,6 @@ app.get('/consumo', (req, res) => {
   res.json(consumo);
 });
 
-// Endpoint para obter o número de destino salvo
-app.get('/numero-destino', (req, res) => {
-  try {
-    const data = JSON.parse(fs.readFileSync(numeroPath, 'utf-8'));
-    res.json(data);
-  } catch (err) {
-    res.json({ numero: '' });
-  }
-});
-
-// Endpoint para salvar o número de destino
-app.post('/salvar-numero', (req, res) => {
-  const { numero } = req.body;
-  
-  if (!numero) {
-    return res.status(400).json({ mensagem: 'Número não fornecido.' });
-  }
-
-  fs.writeFileSync(numeroPath, JSON.stringify({ numero }, null, 2));
-  res.json({ mensagem: 'Número salvo com sucesso!', numero });
-});
 
 function obterDiaAtual() {
   const agora = new Date();
@@ -66,7 +48,7 @@ function obterDiaAtual() {
 
 // Endpoint para enviar o pedido via WhatsApp
 app.post('/enviar', (req, res) => {
-  const { restante, numeroDestino, ...novoConsumo } = req.body;
+  const { restante, ...novoConsumo } = req.body;
 
   // Salva o consumo atualizado
   fs.writeFileSync(consumoPath, JSON.stringify(novoConsumo, null, 2));
@@ -97,48 +79,30 @@ app.post('/enviar', (req, res) => {
   - ${gordura}kg de gordura de peito`;
   }
 
-  // Usa o número fornecido no formulário ou o salvo no JSON
-  let numeroFinal = numeroDestino || '';
-  
-  if (!numeroFinal) {
-    try {
-      const data = JSON.parse(fs.readFileSync(numeroPath, 'utf-8'));
-      numeroFinal = data.numero || '';
-    } catch (err) {
-      console.error('Erro ao ler número salvo:', err);
-    }
-  }
+  const requests = NUMEROS_CARNE.map(numero =>
+    axios.post('https://gate.whapi.cloud/messages/text', {
+      to: numero,
+      body: corpoMensagem
+    }, {
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }
+    })
+  );
 
-  if (!numeroFinal) {
-    return res.status(400).json({ 
-      mensagem: '❌ Nenhum número de destino configurado.',
-      detalhes: 'Por favor, configure o número de destino antes de enviar o pedido.'
+  Promise.all(requests)
+    .then(() => {
+      res.json({
+        mensagem: `✅ Pedido de ${quantidadePedir} Blends enviado para ${diaAmanha}.`,
+        detalhes: corpoMensagem
+      });
+    })
+    .catch(err => {
+      console.error(err.response?.data || err.message);
+      res.status(500).json({ mensagem: '❌ Erro ao enviar o pedido.' });
     });
-  }
-
-  // Salva o número usado se foi fornecido no formulário
-  if (numeroDestino) {
-    fs.writeFileSync(numeroPath, JSON.stringify({ numero: numeroDestino }, null, 2));
-  }
-
-  axios.post('https://gate.whapi.cloud/messages/text', {
-    to: numeroFinal,
-    body: corpoMensagem
-  }, {
-    headers: {
-      Authorization: `Bearer ${TOKEN}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    }
-  }).then(() => {
-    res.json({
-      mensagem: `✅ Pedido de ${quantidadePedir} Blends enviado para ${diaAmanha}.`,
-      detalhes: corpoMensagem
-    });
-  }).catch(err => {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ mensagem: '❌ Erro ao enviar o pedido.' });
-  });
 });
 
 // Endpoint para enviar pedido de pães
@@ -162,24 +126,30 @@ app.post('/enviar-paes', (req, res) => {
     corpoMensagem += `\n  - ${baguete} unidades de Pão Baguete`;
   }
 
-  axios.post('https://gate.whapi.cloud/messages/text', {
-    to: NUMERO_PAES,
-    body: corpoMensagem
-  }, {
-    headers: {
-      Authorization: `Bearer ${TOKEN}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    }
-  }).then(() => {
-    res.json({
-      mensagem: `✅ Pedido de pães enviado com sucesso!`,
-      detalhes: corpoMensagem
+  const requests = NUMEROS_PAES.map(numero => {
+    return axios.post('https://gate.whapi.cloud/messages/text', {
+      to: numero,
+      body: corpoMensagem
+    }, {
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      }
     });
-  }).catch(err => {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ mensagem: '❌ Erro ao enviar o pedido de pães.' });
   });
+
+  Promise.all(requests)
+    .then(() => {
+      res.json({
+        mensagem: `✅ Pedido de pães enviado com sucesso!`,
+        detalhes: corpoMensagem
+      });
+    })
+    .catch(err => {
+      console.error(err.response?.data || err.message);
+      res.status(500).json({ mensagem: '❌ Erro ao enviar o pedido de pães.' });
+    });
 });
 
 // Endpoint para alterar consumo de um dia específico
